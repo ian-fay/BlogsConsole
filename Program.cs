@@ -14,7 +14,8 @@ namespace BlogsConsole
             logger.Info("Program started");
 
             //Console.WriteLine("Hello World!");
-            string choice = "";
+            string stringChoice = "";
+            int intChoice = 0;
 
                 do
             {
@@ -25,11 +26,11 @@ namespace BlogsConsole
                 Console.WriteLine("3) Create Post");
                 Console.WriteLine("4) Display Posts");
                 Console.WriteLine("Enter 'q' to quit");
-                choice = Console.ReadLine();
+                stringChoice = Console.ReadLine();
                 
-                if (choice == "1")
+                if (stringChoice == "1")
                 {
-                    logger.Info("User choice: {Choice}", choice);
+                    logger.Info("User choice: {Choice}", stringChoice);
                     try {
                     var db = new BloggingContext();
                     // Display all Blogs from the database
@@ -41,6 +42,7 @@ namespace BlogsConsole
                             Console.WriteLine(item.Name);
                         }
                         Console.WriteLine("\n");
+
                     } catch(Exception ex) {
                         logger.Error(ex.Message);
                         Console.WriteLine("\n");
@@ -48,9 +50,9 @@ namespace BlogsConsole
                     
                 }
 
-                else if (choice == "2")
+                else if (stringChoice == "2")
                 {
-                    logger.Info("User choice: {Choice}", choice);
+                    logger.Info("User choice: {Choice}", stringChoice);
                     try
                     {
 
@@ -73,17 +75,113 @@ namespace BlogsConsole
                     }
 
                 }
-                else if(choice == "3") 
+                else if(stringChoice == "3") 
                 {          
-                    logger.Info("User choice: {Choice}", choice);
+                    logger.Info("User choice: {Choice}", stringChoice);
+                    try {
+                    var db = new BloggingContext();
+                    // Display all Blogs from the database, in the context of which one to be posted to. 
+                        var query = db.Blogs.OrderBy(b => b.BlogId);
+
+                        Console.WriteLine("Select what blog you would like to post to:");
+                        foreach (var item in query)
+                        {
+                            Console.WriteLine(item.BlogId + ") " + item.Name);
+                        }
+
+                            try {
+                            intChoice = Int32.Parse(Console.ReadLine());
+                            }
+
+                             catch(Exception) {
+                                logger.Error("Invalid blog ID");
+                            }
+                            Post post = new Post();
+                            Console.WriteLine("Enter the Post Title:");
+                            string postTitle = Console.ReadLine();
+                            Console.WriteLine("Enter the Post Content:");
+                            string postContent = Console.ReadLine();
+
+                            post.BlogId = intChoice;
+                            post.Title = postTitle;
+                            post.Content = postContent;
+
+                            db.AddPost(post);
+
+                            logger.Info("Post added - {title}", postTitle);
+
+                         var doesBlogExist = db.Blogs.Where(b => b.BlogId == intChoice).Count();
+                         if(doesBlogExist == 0) {
+                             logger.Error("There are no Blogs saved with that ID");
+                         } 
+
+
+                    } catch(Exception ex) {
+                        logger.Error(ex.Message);
+                        Console.WriteLine("\n");
+                    }
+
 
                 }
-                else if(choice == "4") 
+                else if(stringChoice == "4") 
                 {
-                    logger.Info("User choice: {Choice}", choice);
+                    int postCount = 0;
+                    logger.Info("User choice: {Choice}", stringChoice);
+
+                        Console.WriteLine("Enter your selection:");
+                        Console.WriteLine("0)Display all posts from all blogs");
+
+                        var db = new BloggingContext();
+                        var query = db.Blogs.OrderBy(b => b.BlogId);
+                        foreach (var item in query)
+                        {
+                            Console.WriteLine(item.BlogId + ")Posts from " + item.Name);
+                        }
+
+                            try {
+                            intChoice = Int32.Parse(Console.ReadLine());
+                            }
+
+                             catch(Exception) {
+                                logger.Error("Invalid blog ID");
+                            }
+                        
+                        if(intChoice == 0) {
+                            var allPostScan = db.Posts.OrderBy(b => b.BlogId);
+
+                            foreach (var item in allPostScan) 
+                            {
+                                postCount++;
+                            }
+                            
+                            Console.WriteLine(postCount + " post(s) returned");
+
+                            foreach (var item in allPostScan)
+                            {   
+                                Console.WriteLine($"Blog:{item.Blog.Name}\nTitle:{item.Title}\nContent:{item.Content}");
+                            }
+                            Console.WriteLine("\n");
+
+                        } else {
+                            var specificPostScan = db.Posts.Where(b => b.BlogId == intChoice).OrderBy(b => b.BlogId);
+
+                            foreach (var item in specificPostScan) 
+                            {
+                                postCount++;
+                            }
+
+                            Console.WriteLine(postCount + " post(s) returned");
+
+                            foreach (var item in specificPostScan)
+                            {   
+                                Console.WriteLine($"Blog:{item.Blog.Name}\nTitle:{item.Title}\nContent:{item.Content}");
+                            }
+                            Console.WriteLine("\n");
+                        }
+    
                 }
 
-            } while (choice == "1" || choice == "2" || choice == "3" || choice == "4");
+            } while (stringChoice == "1" || stringChoice == "2" || stringChoice == "3" || stringChoice == "4");
 
             logger.Info("Program ended");
         }
